@@ -7,6 +7,7 @@ version = "0.1.0"
 CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
 HDF5_jll = "0234f1f7-429e-5d53-9886-15a909be8d59"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+OpenBLAS_jll = "4536629a-c528-5b80-bd46-f80d51c5b363"
 armadillo_jll = "0631256a-41da-5d69-bb72-795e0d5510ec"
 libxc_jll = "d3eb20e7-1f97-5a64-a585-f8e3fb19ea2c"
 

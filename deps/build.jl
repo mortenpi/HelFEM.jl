@@ -1,6 +1,7 @@
 using CxxWrap
 using libxc_jll
 using armadillo_jll
+using OpenBLAS_jll
 using HDF5_jll
 cxx_prefix = CxxWrap.CxxWrapCore.prefix_path()
 
@@ -10,7 +11,7 @@ libxc = joinpath(libxc_jll.artifact_dir, "lib", "libxc.a")
 const helfem_commit = "e9ab305933595d48f3badc72431c3fe46eb4cfc8"
 
 cd(@__DIR__) do
-    for dir in ["libhelfem", "lib"]
+    for dir in ["libhelfem", "lib", "build"]
         isdir(dir) || continue
         @warn "$dir/ exists, removing " pwd()
         rm(dir, recursive=true)
@@ -21,15 +22,16 @@ cd(@__DIR__) do
     libhelfem_src = joinpath(pwd(), "libhelfem", "src")
     @assert isdir(libhelfem_src)
 
-    run(`cmake
+    run(`cmake -H. -Bbuild
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_PREFIX_PATH=$cxx_prefix
         -DLIBHELFEM_SRC=$libhelfem_src
         -DLIBXC=$(libxc_jll.artifact_dir)
         -DARMADILLO=$(armadillo_jll.artifact_dir)
         -DHDF5=$(HDF5_jll.artifact_dir)
-        .`)
-    run(`cmake --build . --config Release`)
+        -DOPENBLAS=$(OpenBLAS_jll.artifact_dir)
+        `)
+    run(`make -C build/ install`)
 
     @assert isfile("lib/libhelfem.so")
 end
