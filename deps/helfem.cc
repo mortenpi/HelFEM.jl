@@ -68,7 +68,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
         .method("nel", &helfem::atomic::basis::RadialBasis::Nel)
         .method("radial_integral", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &, int, bool, bool) const>(&helfem::atomic::basis::RadialBasis::radial_integral))
         .method("model_potential", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &, const helfem::modelpotential::ModelPotential *, bool, bool) const>(&helfem::atomic::basis::RadialBasis::model_potential))
-        .method("overlap", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &) const>(&helfem::atomic::basis::RadialBasis::overlap));
+        .method("overlap", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &) const>(&helfem::atomic::basis::RadialBasis::overlap))
+        .method("get_bval", &helfem::atomic::basis::RadialBasis::get_bval)
+        .method("add_boundary", &helfem::atomic::basis::RadialBasis::add_boundary);
 
     mod.method("basis", &helfem_basis);
 }

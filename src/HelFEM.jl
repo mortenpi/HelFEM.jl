@@ -71,4 +71,10 @@ function potential(b1::RadialBasis, model::Symbol, rms::Real = 0.0, b2::RadialBa
     collect(I)
 end
 
+boundaries(b::RadialBasis) = collect(helfem.get_bval(b.b))
+
+function add_boundary!(b::RadialBasis, r::Real)
+    helfem.add_boundary(b.b, r)
+end
+
 end # module

@@ -16,7 +16,7 @@ using LinearAlgebra: I
     end
 
     b1 = HelFEM.RadialBasis(16, 10)
-    b2 = HelFEM.RadialBasis(6, 170)
+    b2 = HelFEM.RadialBasis(6, 170; rmax = 50.0)
 
     # Each element has the same number of basis functions as the order of the polynomials
     # (nnodes), but then we merge the ones on the element boundaries together and also
@@ -24,6 +24,17 @@ using LinearAlgebra: I
     nbf(nnodes, nelems) = nnodes * nelems - (nelems - 1) - 2
     @test length(b1) == nbf(16, 10)
     @test length(b2) == nbf(6, 170)
+
+    let bs = HelFEM.boundaries(b1)
+        @test length(bs) == 11
+        @test bs[1] == 0.0
+        @test bs[end] == 40.0
+    end
+    let bs = HelFEM.boundaries(b2)
+        @test length(bs) == 171
+        @test bs[1] == 0.0
+        @test bs[end] == 50.0
+    end
 
     S1 = HelFEM.overlap(b1)
     @test size(S1) == (length(b1), length(b1))
@@ -45,4 +56,7 @@ using LinearAlgebra: I
 
     S12_rint = HelFEM.radial_integral(b1, 0, b2)
     @test size(S12_rint) == (length(b1), length(b2))
+
+    @test HelFEM.add_boundary!(b1, 1.23) === nothing
+    @test length(HelFEM.boundaries(b1)) == 12
 end
