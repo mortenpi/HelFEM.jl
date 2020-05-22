@@ -28,7 +28,7 @@ end
 struct RadialBasis
     b :: helfem.RadialBasis
 
-    function RadialBasis(nnodes, nelem; primbas = 4, rmax = 40.0, igrid = 2, zexp = 2.0, nquad = nothing)
+    function RadialBasis(nnodes, nelem; primbas = 4, rmax = 40.0, igrid = 4, zexp = 2.0, nquad = nothing)
         new(helfem.basis(nnodes, nelem, primbas, rmax, igrid, zexp, isnothing(nquad) ? 0 : nquad))
     end
 end
