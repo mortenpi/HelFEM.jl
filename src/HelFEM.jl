@@ -41,6 +41,8 @@ function Base.show(io::IO, b::RadialBasis)
     write(io, "RadialBasis: $nbf basis functions ($nel elements)")
 end
 
+nquad(b::RadialBasis) = helfem.get_nquad(b.b)
+
 function overlap(b::RadialBasis; invh=false)
     S = helfem.overlap(b.b, b.b)
     if invh
@@ -72,9 +74,48 @@ function potential(b1::RadialBasis, model::Symbol, rms::Real = 0.0, b2::RadialBa
 end
 
 boundaries(b::RadialBasis) = collect(helfem.get_bval(b.b))
+add_boundary!(b::RadialBasis, r::Real) = helfem.add_boundary(b.b, r)
 
-function add_boundary!(b::RadialBasis, r::Real)
-    helfem.add_boundary(b.b, r)
+function quadraturepoints(b::RadialBasis)
+    nq, nel = nquad(b), Int(helfem.nel(b.b))
+    rs = Vector{Float64}(undef, nel*nq)
+    for i = 0:nel-1
+        el_rs = collect(helfem.get_r(b.b, i))
+        @assert length(el_rs) == nq
+        rs[nq*i+1:nq*(i+1)] .= el_rs
+    end
+    return rs
+end
+
+function quadratureweights(b::RadialBasis)
+    nq, nel = nquad(b), Int(helfem.nel(b.b))
+    rs = Vector{Float64}(undef, nel*nq)
+    for i = 0:nel-1
+        el_rs = collect(helfem.get_wrad(b.b, i))
+        @assert length(el_rs) == nq
+        rs[nq*i+1:nq*(i+1)] .= el_rs
+    end
+    return rs
+end
+
+function basisvalues(b::RadialBasis)
+    nq, nel, nbf = nquad(b), Int(helfem.nel(b.b)), length(b)
+    ys = zeros(nel*nq, nbf)
+    nbf_count = 0
+    for i = 0:nel-1
+        el_ys = collect(helfem.get_bf(b.b, i))
+        @assert size(el_ys, 1) == nq
+        #@info "el=$i" size(el_ys)
+        nbf_in_element = size(el_ys, 2)
+        rs_range = nq*i+1 : nq*(i+1)
+        bf_range_start = nbf_count == 0 ? 1 : nbf_count
+        bf_range = bf_range_start:(bf_range_start+nbf_in_element-1)
+        #@show bf_range
+        ys[rs_range, bf_range] .= el_ys
+        nbf_count = last(bf_range)
+    end
+    @assert nbf_count == nbf
+    return ys
 end
 
 end # module

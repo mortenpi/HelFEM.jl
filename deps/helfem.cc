@@ -63,14 +63,22 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     //      .method("get_nbf", &helfem::polynomial_basis::PolynomialBasis::get_nbf)
     //      .method("get_noverlap", &helfem::polynomial_basis::PolynomialBasis::get_noverlap);
     mod.add_type<helfem::atomic::basis::RadialBasis>("RadialBasis")
-        .method("nquad", &helfem::atomic::basis::RadialBasis::get_nquad)
+        .method("get_nquad", &helfem::atomic::basis::RadialBasis::get_nquad)
+        .method("get_poly_id", &helfem::atomic::basis::RadialBasis::get_poly_id)
+        .method("get_poly_order", &helfem::atomic::basis::RadialBasis::get_poly_order)
         .method("nbf", &helfem::atomic::basis::RadialBasis::Nbf)
         .method("nel", &helfem::atomic::basis::RadialBasis::Nel)
         .method("radial_integral", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &, int, bool, bool) const>(&helfem::atomic::basis::RadialBasis::radial_integral))
         .method("model_potential", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &, const helfem::modelpotential::ModelPotential *, bool, bool) const>(&helfem::atomic::basis::RadialBasis::model_potential))
         .method("overlap", static_cast<arma::mat (helfem::atomic::basis::RadialBasis::*)(const helfem::atomic::basis::RadialBasis &) const>(&helfem::atomic::basis::RadialBasis::overlap))
         .method("get_bval", &helfem::atomic::basis::RadialBasis::get_bval)
-        .method("add_boundary", &helfem::atomic::basis::RadialBasis::add_boundary);
+        .method("add_boundary", &helfem::atomic::basis::RadialBasis::add_boundary)
+        // Basis function introspection (at quadrature points)
+        .method("get_bf", &helfem::atomic::basis::RadialBasis::get_bf)
+        .method("get_df", &helfem::atomic::basis::RadialBasis::get_df)
+        .method("get_lf", &helfem::atomic::basis::RadialBasis::get_lf)
+        .method("get_wrad", &helfem::atomic::basis::RadialBasis::get_wrad)
+        .method("get_r", &helfem::atomic::basis::RadialBasis::get_r);
 
     mod.method("basis", &helfem_basis);
 }

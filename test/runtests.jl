@@ -6,6 +6,9 @@ using LinearAlgebra: I
     @testset "helfem" begin
         using HelFEM: helfem
         b = helfem.basis(10, 20, 4, 40, 2, 2.0, 0)
+        @test helfem.get_nquad(b) == 50
+        @test helfem.get_poly_id(b) == 4
+        @test helfem.get_poly_order(b) == 10
         m = helfem.radial_integral(b, b, 0, false, false)
         @test size(m, 1) === 179
         @test size(m, 2) === 179
