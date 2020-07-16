@@ -27,10 +27,37 @@ end
 
 struct RadialBasis
     b :: helfem.RadialBasis
+    nnodes :: Int
+    nelem :: Int
+    primbas :: Int
+    rmax :: Float64
+    igrid :: Int
+    zexp :: Float64
+    nquad :: Int
 
     function RadialBasis(nnodes, nelem; primbas = 4, rmax = 40.0, igrid = 4, zexp = 2.0, nquad = nothing)
-        new(helfem.basis(nnodes, nelem, primbas, rmax, igrid, zexp, isnothing(nquad) ? 0 : nquad))
+        nquad = isnothing(nquad) ? 0 : nquad
+        new(
+            helfem.basis(nnodes, nelem, primbas, rmax, igrid, zexp, nquad),
+            nnodes, nelem, primbas, rmax, igrid, zexp, nquad,
+        )
     end
+end
+
+# Special RadialBasis constructor that allows you to construct a new RadialBasis based on an
+# existing one, where you have added (or, also, removed) elements without changing the
+# values of the first elements.
+#
+# TODO: add tests for this
+function HelFEM.RadialBasis(b::RadialBasis; nelem)
+    b_new = HelFEM.RadialBasis(b.nnodes, nelem;
+        primbas = b.primbas, igrid = b.igrid, zexp = b.zexp, nquad = b.nquad,
+        # calculated from the new nelem value:
+        rmax = ^(1 + b.rmax, (nelem/b.nelem)^b.zexp) - 1,
+    )
+    imax = min(nelem, b.nelem) + 1
+    @assert HelFEM.boundaries(b)[1:imax] ≈ HelFEM.boundaries(b_new)[1:imax]
+    return b_new
 end
 
 Base.length(b::RadialBasis) = Int(helfem.nbf(b.b))
