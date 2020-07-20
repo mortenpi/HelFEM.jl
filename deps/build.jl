@@ -3,6 +3,7 @@ using libxc_jll
 using armadillo_jll
 using OpenBLAS_jll
 using HDF5_jll
+using GSL_jll
 cxx_prefix = CxxWrap.CxxWrapCore.prefix_path()
 
 libxc = joinpath(libxc_jll.artifact_dir, "lib", "libxc.a")
@@ -30,6 +31,7 @@ cd(@__DIR__) do
         -DARMADILLO=$(armadillo_jll.artifact_dir)
         -DHDF5=$(HDF5_jll.artifact_dir)
         -DOPENBLAS=$(OpenBLAS_jll.artifact_dir)
+        -DGSL=$(GSL_jll.artifact_dir)
         `)
     run(`make -C build/ install`)
 
