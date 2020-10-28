@@ -2,9 +2,8 @@ module HelFEM
 using CxxWrap: CxxPtr
 
 module helfem
-using CxxWrap
-    #import armadillo_jll, OpenBLAS_jll, HDF5_jll
-    @wrapmodule(joinpath(@__DIR__, "..", "deps", "lib", "libhelfem.so"))
+    using CxxWrap, HelFEM_jll
+    @wrapmodule(libhelfem)
     function __init__()
         @initcxx
         verbose(false)
@@ -24,6 +23,8 @@ using CxxWrap
     end
     Base.collect(m::ArmaMatrix) = [at(m, i - 1, j - 1) for i = 1:size(m, 1), j = 1:size(m, 2)]
 end
+
+invh(S) = helfem.invh(S, false)
 
 struct RadialBasis
     b :: helfem.RadialBasis
@@ -73,8 +74,7 @@ nquad(b::RadialBasis) = helfem.get_nquad(b.b)
 function overlap(b::RadialBasis; invh=false)
     S = helfem.overlap(b.b, b.b)
     if invh
-        Sinvh = helfem.form_Sinvh(S, false)
-        collect(S), collect(Sinvh)
+        collect(S), collect(HelFEM.invh(S))
     else
         collect(S)
     end
