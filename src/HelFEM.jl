@@ -9,6 +9,13 @@ module helfem
         verbose(false)
     end
 
+    function ArmaVector(v::Vector)
+        av = ArmaVector(length(v))
+        for (i, x) in enumerate(v)
+            at!(av, i - 1, convert(Float64, x))
+        end
+        return av
+    end
     Base.size(v::ArmaVector) = (Int(nrows(v)),)
     function Base.size(v::ArmaVector, dim::Integer)
         dim <= 0 && throw(ArgumentError("dimension $dim out of range"))
@@ -16,6 +23,15 @@ module helfem
     end
     Base.collect(v::ArmaVector) = [at(v, i - 1) for i = 1:size(v, 1)]
 
+    function ArmaMatrix(M::Matrix)
+        aM = ArmaMatrix(size(M, 1), size(M, 2))
+        idxs = CartesianIndices(M)
+        for (k, x) in enumerate(M)
+            i, j = Tuple(idxs[k])
+            at!(aM, i - 1, j - 1, convert(Float64, x))
+        end
+        return aM
+    end
     Base.size(m::ArmaMatrix) = (Int(nrows(m)), Int(ncols(m)))
     function Base.size(m::ArmaMatrix, dim::Integer)
         dim <= 0 && throw(ArgumentError("dimension $dim out of range"))
@@ -25,6 +41,34 @@ module helfem
 end
 
 invh(S) = helfem.invh(S, false)
+
+## Primitive polynomials bases (PolynomialBasis)
+
+struct PolynomialBasis2
+    pb :: helfem.PolynomialBasis
+    primbas :: Int
+
+    function PolynomialBasis2(basis::Symbol, nnodes::Integer)
+        primbas = (basis == :hermite) ? 2 :
+                  (basis == :legendre) ? 3 :
+                  (basis == :lip) ? 4 : error("Invalid primitive basis name $basis")
+        new(helfem.polynomial_basis(primbas, nnodes), primbas)
+    end
+end
+
+primbas_name(primbas::Int) =
+    (primbas == 2) ? "HermiteBasis" :
+    (primbas == 3) ? "LegendreBasis" :
+    (primbas == 4) ? "LIPBasis" : error("Invalid primbas value $primbas")
+
+function Base.show(io::IO, pb::PolynomialBasis2)
+    classname = primbas_name(pb.primbas)
+    order = helfem.pb_order(pb.pb)
+    nbf = length(pb)
+    write(io, "PolynomialBasis($(primbas_name(pb.primbas)), order=$order) with $(nbf) basis functions")
+end
+
+Base.length(pb::PolynomialBasis2) = helfem.get_nbf(pb.pb)
 
 struct RadialBasis
     b :: helfem.RadialBasis
