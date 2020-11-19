@@ -1,3 +1,6 @@
 .DS_Store
 /Manifest.toml
-/dev/
+
+# Documentation-related ignores
+/docs/Manifest.toml
+/docs/build/
