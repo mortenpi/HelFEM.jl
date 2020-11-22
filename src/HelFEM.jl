@@ -42,6 +42,20 @@ end
 
 invh(S) = helfem.invh(S, false)
 
+## Quadrature
+
+"""
+    chebyshev(nquad) -> (xs::Vector, ws::Vector)
+
+Return HelFEM's modified Gauss-Chebyshev quadrature points and weights for numerical
+integration of functions on ``x \\in [-1, 1]``.
+"""
+function chebyshev(nquad)
+    xs, ws = HelFEM.helfem.ArmaVector(), HelFEM.helfem.ArmaVector()
+    HelFEM.helfem.chebyshev(nquad, xs, ws)
+    (xs = collect(xs), ws = collect(ws))
+end
+
 ## Primitive polynomials bases (PolynomialBasis)
 
 struct PolynomialBasis2
