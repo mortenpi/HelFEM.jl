@@ -58,11 +58,11 @@ end
 
 ## Primitive polynomials bases (PolynomialBasis)
 
-struct PolynomialBasis2
+struct PolynomialBasis
     pb :: helfem.PolynomialBasis
     primbas :: Int
 
-    function PolynomialBasis2(basis::Symbol, nnodes::Integer)
+    function PolynomialBasis(basis::Symbol, nnodes::Integer)
         primbas = (basis == :hermite) ? 2 :
                   (basis == :legendre) ? 3 :
                   (basis == :lip) ? 4 : error("Invalid primitive basis name $basis")
@@ -75,14 +75,19 @@ primbas_name(primbas::Int) =
     (primbas == 3) ? "LegendreBasis" :
     (primbas == 4) ? "LIPBasis" : error("Invalid primbas value $primbas")
 
-function Base.show(io::IO, pb::PolynomialBasis2)
+function Base.show(io::IO, pb::PolynomialBasis)
     classname = primbas_name(pb.primbas)
     order = helfem.pb_order(pb.pb)
     nbf = length(pb)
     write(io, "PolynomialBasis($(primbas_name(pb.primbas)), order=$order) with $(nbf) basis functions")
 end
 
-Base.length(pb::PolynomialBasis2) = helfem.get_nbf(pb.pb)
+Base.length(pb::PolynomialBasis) = helfem.get_nbf(pb.pb)
+
+function (pb::PolynomialBasis)(xs)
+    arma_xs = helfem.ArmaVector(collect(xs))
+    return collect(helfem.pb_eval(pb.pb, arma_xs))
+end
 
 struct RadialBasis
     b :: helfem.RadialBasis

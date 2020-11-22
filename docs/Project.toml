@@ -1,5 +1,9 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+HelFEM = "c0bd3504-f9fd-49c8-81ec-6baa9ade81f3"
+HelFEM_jll = "584ea77b-75d0-51ad-9ad6-7fb559b95557"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
 Documenter = "0.25"
+Plots = "1"
