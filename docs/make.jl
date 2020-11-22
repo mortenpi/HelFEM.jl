@@ -7,7 +7,8 @@ makedocs(
     pages = [
         "Overview" => "index.md",
         "polynomial.md",
-    ]
+        "radialbasis.md",
+    ],
 )
 
 deploydocs(repo = "github.com/mortenpi/HelFEM.jl")
