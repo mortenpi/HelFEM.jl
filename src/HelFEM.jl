@@ -106,6 +106,17 @@ struct RadialBasis
             nnodes, nelem, primbas, rmax, igrid, zexp, nquad,
         )
     end
+
+    function RadialBasis(pb::PolynomialBasis, grid::Vector, nquad::Integer)
+        b = helfem.RadialBasis(CxxPtr(pb.pb), nquad, helfem.ArmaVector(grid))
+        nnodes = helfem.pb_order(pb.pb)
+        nelem = length(grid) - 1
+        primbas = pb.primbas
+        rmax = last(grid)
+        igrid = 0 # let's declare the igrid == 0 means a custom grid
+        zexp = NaN
+        new(b, nnodes, nelem, primbas, rmax, igrid, zexp, nquad)
+    end
 end
 
 # Special RadialBasis constructor that allows you to construct a new RadialBasis based on an
@@ -206,6 +217,24 @@ function basisvalues(b::RadialBasis)
     end
     @assert nbf_count == nbf
     return ys
+end
+
+"""
+Returns a vector of grid boundaries.
+"""
+function radialgrid(gridtype, nelem, rmax; zexp=nothing)
+    igrid = (gridtype == :linear) ? 1 :
+        (gridtype == :quadratic) ? 2 :
+        (gridtype == :polynomial) ? 3 :
+        (gridtype == :exponential) ? 4 :
+        throw(ArgumentError("Invalid gridtype $gridtype"))
+    if (gridtype == :linear || gridtype == :quadratic) && !isnothing(zexp)
+        throw(ArgumentError("zexp has no effect on linear or quadratic grids"))
+    end
+    if (gridtype == :polynomial || gridtype == :exponential) && isnothing(zexp)
+        throw(ArgumentError("Must set zexp for polynomial and exponential grids"))
+    end
+    collect(helfem.get_grid(rmax, nelem, igrid, isnothing(zexp) ? 0.0 : zexp))
 end
 
 end # module
