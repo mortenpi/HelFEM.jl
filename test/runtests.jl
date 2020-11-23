@@ -21,6 +21,10 @@ using LinearAlgebra: I
     b1 = HelFEM.RadialBasis(16, 10)
     b2 = HelFEM.RadialBasis(6, 170; rmax = 50.0)
 
+    # Make sure that our basis function evaluation functions give the same results.
+    b1(HelFEM.quadraturepoints(b1)) ≈ HelFEM.basisvalues(b1)
+    b2(HelFEM.quadraturepoints(b2)) ≈ HelFEM.basisvalues(b2)
+
     # Each element has the same number of basis functions as the order of the polynomials
     # (nnodes), but then we merge the ones on the element boundaries together and also
     # remove one function from each edge to satisfy boundary conditions

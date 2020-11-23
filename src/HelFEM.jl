@@ -237,4 +237,39 @@ function radialgrid(gridtype, nelem, rmax; zexp=nothing)
     collect(helfem.get_grid(rmax, nelem, igrid, isnothing(zexp) ? 0.0 : zexp))
 end
 
+function (b::RadialBasis)(rs)
+    element_boundaries = boundaries(b)
+    @assert minimum(element_boundaries) <= minimum(rs)
+    @assert maximum(element_boundaries) >= maximum(rs)
+    # Group the rs values by by element. Note that we'll use the C++ indexing convention,
+    # i.e. first element is labelled with 0.
+    bf = zeros(Float64, (length(rs), length(b)))
+    pb_ptr = helfem.get_poly(b.b)
+    poly_nbf = helfem.get_nbf(pb_ptr)
+    for iel = 0:(b.nelem - 1)
+        rmin, rmax = element_boundaries[iel+1], element_boundaries[iel+2]
+        r0, rλ = (rmax + rmin) / 2, (rmax - rmin) / 2
+        # We assign the r values on the boundaries to the element on the right. In other words,
+        # we'll define the element to be r ∈ [rmin, rmax). However, this would exclude the
+        # right edge of the whole box, so we'll special case the last element by including
+        # rmax in the last element. Note: we have already ensured that no r values lie
+        # outside of the box.
+        idxs = (iel == b.nelem-1) ? findall(r -> r > rmin, rs) : findall(r -> rmin < r < rmax, rs)
+        isempty(idxs) && continue
+        # Scale the rs values in this element down to the [-1, 1] range
+        xs = (rs[idxs] .- r0) ./ rλ
+        # Calculate the basis values in the element
+        ys = collect(helfem.pb_eval(pb_ptr, helfem.ArmaVector(xs)))
+        # Assign the calculated basis values to the correct place in the basis matrix
+        bfrange_start = (iel == 0) ? 1 : (poly_nbf - 1) * iel
+        bfrange_end = (iel == b.nelem - 1) ? length(b) : (poly_nbf - 1) * (iel + 1)
+        ysrange_start = (iel == 0) ? 2 : 1
+        ysrange_end = (iel == b.nelem - 1) ? (poly_nbf - 1) : poly_nbf
+        # We also divide all the basis values by r, because that is how RadialBasis is defined
+        # in HelFEM.
+        bf[idxs, bfrange_start:bfrange_end] .= ys[:, ysrange_start:ysrange_end] ./ rs[idxs]
+    end
+    return bf
+end
+
 end # module

@@ -1,4 +1,4 @@
-# Radial Basis
+# RadialBasis
 
 ```@example
 using HelFEM, Plots
@@ -6,7 +6,8 @@ pb = HelFEM.PolynomialBasis(:lip, 4)
 xgrid = [0, 1, 2, 3]
 b = HelFEM.RadialBasis(pb, xgrid, 100)
 # Calculate points for plotting
-rs, bs = HelFEM.quadraturepoints(b), HelFEM.basisvalues(b)
+rs = range(minimum(xgrid), maximum(xgrid), length=501)
+bs = b(rs)
 a = @animate for i in 1:length(b)
     plot(layout=(2,1), size=(900, 700), legend=false,
         ylabel = [raw"$b(r)$" raw"$r~b(r)$"]
