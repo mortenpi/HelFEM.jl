@@ -9,6 +9,13 @@ module helfem
         verbose(false)
     end
 
+    function ArmaVector(v::Vector)
+        av = ArmaVector(length(v))
+        for (i, x) in enumerate(v)
+            at!(av, i - 1, convert(Float64, x))
+        end
+        return av
+    end
     Base.size(v::ArmaVector) = (Int(nrows(v)),)
     function Base.size(v::ArmaVector, dim::Integer)
         dim <= 0 && throw(ArgumentError("dimension $dim out of range"))
@@ -16,6 +23,15 @@ module helfem
     end
     Base.collect(v::ArmaVector) = [at(v, i - 1) for i = 1:size(v, 1)]
 
+    function ArmaMatrix(M::Matrix)
+        aM = ArmaMatrix(size(M, 1), size(M, 2))
+        idxs = CartesianIndices(M)
+        for (k, x) in enumerate(M)
+            i, j = Tuple(idxs[k])
+            at!(aM, i - 1, j - 1, convert(Float64, x))
+        end
+        return aM
+    end
     Base.size(m::ArmaMatrix) = (Int(nrows(m)), Int(ncols(m)))
     function Base.size(m::ArmaMatrix, dim::Integer)
         dim <= 0 && throw(ArgumentError("dimension $dim out of range"))
@@ -25,6 +41,53 @@ module helfem
 end
 
 invh(S) = helfem.invh(S, false)
+
+## Quadrature
+
+"""
+    chebyshev(nquad) -> (xs::Vector, ws::Vector)
+
+Return HelFEM's modified Gauss-Chebyshev quadrature points and weights for numerical
+integration of functions on ``x \\in [-1, 1]``.
+"""
+function chebyshev(nquad)
+    xs, ws = HelFEM.helfem.ArmaVector(), HelFEM.helfem.ArmaVector()
+    HelFEM.helfem.chebyshev(nquad, xs, ws)
+    (xs = collect(xs), ws = collect(ws))
+end
+
+## Primitive polynomials bases (PolynomialBasis)
+
+struct PolynomialBasis
+    pb :: helfem.PolynomialBasis
+    primbas :: Int
+
+    function PolynomialBasis(basis::Symbol, nnodes::Integer)
+        primbas = (basis == :hermite) ? 2 :
+                  (basis == :legendre) ? 3 :
+                  (basis == :lip) ? 4 : error("Invalid primitive basis name $basis")
+        new(helfem.polynomial_basis(primbas, nnodes), primbas)
+    end
+end
+
+primbas_name(primbas::Int) =
+    (primbas == 2) ? "HermiteBasis" :
+    (primbas == 3) ? "LegendreBasis" :
+    (primbas == 4) ? "LIPBasis" : error("Invalid primbas value $primbas")
+
+function Base.show(io::IO, pb::PolynomialBasis)
+    classname = primbas_name(pb.primbas)
+    order = helfem.pb_order(pb.pb)
+    nbf = length(pb)
+    write(io, "PolynomialBasis($(primbas_name(pb.primbas)), order=$order) with $(nbf) basis functions")
+end
+
+Base.length(pb::PolynomialBasis) = helfem.get_nbf(pb.pb)
+
+function (pb::PolynomialBasis)(xs)
+    arma_xs = helfem.ArmaVector(collect(xs))
+    return collect(helfem.pb_eval(pb.pb, arma_xs))
+end
 
 struct RadialBasis
     b :: helfem.RadialBasis
@@ -42,6 +105,17 @@ struct RadialBasis
             helfem.basis(nnodes, nelem, primbas, rmax, igrid, zexp, nquad),
             nnodes, nelem, primbas, rmax, igrid, zexp, nquad,
         )
+    end
+
+    function RadialBasis(pb::PolynomialBasis, grid::Vector, nquad::Integer)
+        b = helfem.RadialBasis(CxxPtr(pb.pb), nquad, helfem.ArmaVector(grid))
+        nnodes = helfem.pb_order(pb.pb)
+        nelem = length(grid) - 1
+        primbas = pb.primbas
+        rmax = last(grid)
+        igrid = 0 # let's declare the igrid == 0 means a custom grid
+        zexp = NaN
+        new(b, nnodes, nelem, primbas, rmax, igrid, zexp, nquad)
     end
 end
 
@@ -143,6 +217,59 @@ function basisvalues(b::RadialBasis)
     end
     @assert nbf_count == nbf
     return ys
+end
+
+"""
+Returns a vector of grid boundaries.
+"""
+function radialgrid(gridtype, nelem, rmax; zexp=nothing)
+    igrid = (gridtype == :linear) ? 1 :
+        (gridtype == :quadratic) ? 2 :
+        (gridtype == :polynomial) ? 3 :
+        (gridtype == :exponential) ? 4 :
+        throw(ArgumentError("Invalid gridtype $gridtype"))
+    if (gridtype == :linear || gridtype == :quadratic) && !isnothing(zexp)
+        throw(ArgumentError("zexp has no effect on linear or quadratic grids"))
+    end
+    if (gridtype == :polynomial || gridtype == :exponential) && isnothing(zexp)
+        throw(ArgumentError("Must set zexp for polynomial and exponential grids"))
+    end
+    collect(helfem.get_grid(rmax, nelem, igrid, isnothing(zexp) ? 0.0 : zexp))
+end
+
+function (b::RadialBasis)(rs)
+    element_boundaries = boundaries(b)
+    @assert minimum(element_boundaries) <= minimum(rs)
+    @assert maximum(element_boundaries) >= maximum(rs)
+    # Group the rs values by by element. Note that we'll use the C++ indexing convention,
+    # i.e. first element is labelled with 0.
+    bf = zeros(Float64, (length(rs), length(b)))
+    pb_ptr = helfem.get_poly(b.b)
+    poly_nbf = helfem.get_nbf(pb_ptr)
+    for iel = 0:(b.nelem - 1)
+        rmin, rmax = element_boundaries[iel+1], element_boundaries[iel+2]
+        r0, rλ = (rmax + rmin) / 2, (rmax - rmin) / 2
+        # We assign the r values on the boundaries to the element on the right. In other words,
+        # we'll define the element to be r ∈ [rmin, rmax). However, this would exclude the
+        # right edge of the whole box, so we'll special case the last element by including
+        # rmax in the last element. Note: we have already ensured that no r values lie
+        # outside of the box.
+        idxs = (iel == b.nelem-1) ? findall(r -> r > rmin, rs) : findall(r -> rmin < r < rmax, rs)
+        isempty(idxs) && continue
+        # Scale the rs values in this element down to the [-1, 1] range
+        xs = (rs[idxs] .- r0) ./ rλ
+        # Calculate the basis values in the element
+        ys = collect(helfem.pb_eval(pb_ptr, helfem.ArmaVector(xs)))
+        # Assign the calculated basis values to the correct place in the basis matrix
+        bfrange_start = (iel == 0) ? 1 : (poly_nbf - 1) * iel
+        bfrange_end = (iel == b.nelem - 1) ? length(b) : (poly_nbf - 1) * (iel + 1)
+        ysrange_start = (iel == 0) ? 2 : 1
+        ysrange_end = (iel == b.nelem - 1) ? (poly_nbf - 1) : poly_nbf
+        # We also divide all the basis values by r, because that is how RadialBasis is defined
+        # in HelFEM.
+        bf[idxs, bfrange_start:bfrange_end] .= ys[:, ysrange_start:ysrange_end] ./ rs[idxs]
+    end
+    return bf
 end
 
 end # module
