@@ -253,6 +253,7 @@ end
 
 function (b::RadialBasis)(rs)
     element_boundaries = boundaries(b)
+    @assert minimum(element_boundaries) == 0
     @assert minimum(element_boundaries) <= minimum(rs)
     @assert maximum(element_boundaries) >= maximum(rs)
     # Group the rs values by by element. Note that we'll use the C++ indexing convention,
@@ -263,12 +264,10 @@ function (b::RadialBasis)(rs)
     for iel = 0:(b.nelem - 1)
         rmin, rmax = element_boundaries[iel+1], element_boundaries[iel+2]
         r0, rλ = (rmax + rmin) / 2, (rmax - rmin) / 2
-        # We assign the r values on the boundaries to the element on the right. In other words,
-        # we'll define the element to be r ∈ [rmin, rmax). However, this would exclude the
-        # right edge of the whole box, so we'll special case the last element by including
-        # rmax in the last element. Note: we have already ensured that no r values lie
-        # outside of the box.
-        idxs = (iel == b.nelem-1) ? findall(r -> r > rmin, rs) : findall(r -> rmin < r < rmax, rs)
+        # We assign the r values on the boundaries to the element on the left. In other words,
+        # we'll define the element to be r ∈ (rmin, rmax]. This excludes r=0, but that is
+        # intentional --  we need to special case that because of the 1/r scaling.
+        idxs = findall(r -> rmin < r <= rmax, rs)
         isempty(idxs) && continue
         # Scale the rs values in this element down to the [-1, 1] range
         xs = (rs[idxs] .- r0) ./ rλ
@@ -282,6 +281,22 @@ function (b::RadialBasis)(rs)
         # We also divide all the basis values by r, because that is how RadialBasis is defined
         # in HelFEM.
         bf[idxs, bfrange_start:bfrange_end] .= ys[:, ysrange_start:ysrange_end] ./ rs[idxs]
+    end
+    # Handle the r = 0 case, for which we need to look at the derivative of the polynomial
+    # on the edge. That is, if f(0) = 0, then f(x)/x|_{x=0} = f'(0).
+    idxs = findall(isequal(0), rs)
+    if length(idxs) > 0
+        zero_r = helfem.ArmaVector([-1]) # r = 0, therefore x = -1 in the first element
+        ys, dys = helfem.ArmaMatrix(1, poly_nbf), helfem.ArmaMatrix(1, poly_nbf)
+        helfem.pb_eval(pb_ptr, zero_r, ys, dys)
+        dys = collect(dys)
+        # If any of the r values are zero, we know that they will belong to the first
+        # element, so we need to remove the leftmost basis function.
+        for i in idxs
+            # The 2/element_boundaries[2] factor comes from the scaling of the derivative
+            # due to the scaling of the x-axis when going from [-1, 1] to [0, r_1].
+            bf[i, 1:(poly_nbf - 1)] .= dys[1, 2:end] .* (2/element_boundaries[2])
+        end
     end
     return bf
 end
