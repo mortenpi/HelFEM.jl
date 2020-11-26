@@ -1,6 +1,7 @@
 using HelFEM
 using Test
 using LinearAlgebra: I
+using SparseArrays: SparseVector, SparseMatrixCSC
 
 @testset "HelFEM.jl" begin
     @testset "helfem" begin
@@ -16,6 +17,13 @@ using LinearAlgebra: I
         @test size(m) == (179, 179)
         @test_throws ArgumentError size(m, 0)
         @test_throws ArgumentError size(m, -100)
+
+        # Wrapping of arma::vec and arma::mat
+        @test collect(helfem.ArmaVector([1,2,3])) == [1,2,3]
+        @test collect(helfem.ArmaMatrix([1 2 3; 4 5 6])) == [1 2 3; 4 5 6]
+        # Make sure we accept general vectors and matrices
+        @test collect(helfem.ArmaVector(SparseVector([1,0,0,2]))) == [1,0,0,2]
+        @test collect(helfem.ArmaMatrix(SparseMatrixCSC([1 0 0; 0 5 0]))) == [1 0 0; 0 5 0]
     end
 
     b1 = HelFEM.RadialBasis(16, 10)

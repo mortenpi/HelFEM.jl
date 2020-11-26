@@ -11,7 +11,7 @@ module helfem
         verbose(false)
     end
 
-    function ArmaVector(v::Vector)
+    function ArmaVector(v::AbstractVector)
         av = ArmaVector(length(v))
         for (i, x) in enumerate(v)
             at!(av, i - 1, convert(Float64, x))
@@ -25,7 +25,7 @@ module helfem
     end
     Base.collect(v::ArmaVector) = [at(v, i - 1) for i = 1:size(v, 1)]
 
-    function ArmaMatrix(M::Matrix)
+    function ArmaMatrix(M::AbstractMatrix)
         aM = ArmaMatrix(size(M, 1), size(M, 2))
         idxs = CartesianIndices(M)
         for (k, x) in enumerate(M)
@@ -121,7 +121,7 @@ struct RadialBasis
         )
     end
 
-    function RadialBasis(pb::PolynomialBasis, grid::Vector, nquad::Integer)
+    function RadialBasis(pb::PolynomialBasis, grid::AbstractVector, nquad::Integer)
         b = helfem.RadialBasis(CxxPtr(pb.pb), nquad, helfem.ArmaVector(grid))
         nnodes = helfem.pb_order(pb.pb)
         nelem = length(grid) - 1
