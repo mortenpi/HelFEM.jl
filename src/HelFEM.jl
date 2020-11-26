@@ -1,6 +1,8 @@
 module HelFEM
 using CxxWrap: CxxPtr
 
+export PolynomialBasis, RadialBasis
+
 module helfem
     using CxxWrap, HelFEM_jll
     @wrapmodule(libhelfem)
@@ -58,6 +60,12 @@ end
 
 ## Primitive polynomials bases (PolynomialBasis)
 
+@doc raw"""
+    struct PolynomialBasis
+
+Wrapper type for the `helfem::atomic::polynomial_basis::PolynomialBasis` class, representing
+a set of polynomials ``\{p_i(x)\}`` on a domain ``x \in [-1, 1]``.
+"""
 struct PolynomialBasis
     pb :: helfem.PolynomialBasis
     primbas :: Int
@@ -89,6 +97,12 @@ function (pb::PolynomialBasis)(xs)
     return collect(helfem.pb_eval(pb.pb, arma_xs))
 end
 
+@doc raw"""
+    struct RadialBasis
+
+Wrapper type for the `helfem::atomic::basis::RadialBasis` class, representing a finite
+element basis for radial functions on the domain ``r \in [0, r_{\rm{max}}]``.
+"""
 struct RadialBasis
     b :: helfem.RadialBasis
     nnodes :: Int

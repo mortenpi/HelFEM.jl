@@ -35,3 +35,9 @@ let xs = range(-1, 1, length=2001)
     gif(a, fps=0.5)
 end
 ```
+
+## Reference
+
+```@docs
+PolynomialBasis
+```
