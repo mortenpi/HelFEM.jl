@@ -59,6 +59,20 @@ using SparseArrays: SparseVector, SparseMatrixCSC
         @test bs[end] == 50.0
     end
 
+    # Check properties of control points. Specifically, we're checking that for LIPs, the
+    # basis function values at control points are equal to 1/r and zero otherwise.
+    function check_control_point_matrix(b)
+        cs = HelFEM.controlpoints(b)
+        @test b(cs) .* cs ≈ [
+            # The ones are on the first lower diagonal (i.e. below the main diagonal),
+            # hence the +1:
+            i == j + 1 ? 1 : 0
+            for i = 1:length(cs), j = 1:length(b)
+        ]
+    end
+    check_control_point_matrix(b1)
+    check_control_point_matrix(b2)
+
     # Scaling between polynomial coordinates to radial coordinates
     @test_throws Exception HelFEM.scale_to_element(b1, 0, 0)
     @test_throws Exception HelFEM.scale_to_element(b1, 11, 0)

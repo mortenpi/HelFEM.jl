@@ -58,6 +58,18 @@ function chebyshev(nquad)
     (xs = collect(xs), ws = collect(ws))
 end
 
+"""
+    lobatto(nquad) -> (xs::Vector, ws::Vector)
+
+Return HelFEM's Gauss-Lobatto quadrature points and weights for numerical on
+``x \\in [-1, 1]``.
+"""
+function lobatto(nquad)
+    xs, ws = HelFEM.helfem.ArmaVector(), HelFEM.helfem.ArmaVector()
+    HelFEM.helfem.lobatto(nquad, xs, ws)
+    (xs = collect(xs), ws = collect(ws))
+end
+
 ## Primitive polynomials bases (PolynomialBasis)
 
 @doc raw"""
@@ -69,12 +81,13 @@ a set of polynomials ``\{p_i(x)\}`` on a domain ``x \in [-1, 1]``.
 struct PolynomialBasis
     pb :: helfem.PolynomialBasis
     primbas :: Int
+    nnodes :: Int
 
     function PolynomialBasis(basis::Symbol, nnodes::Integer)
         primbas = (basis == :hermite) ? 2 :
                   (basis == :legendre) ? 3 :
                   (basis == :lip) ? 4 : error("Invalid primitive basis name $basis")
-        new(helfem.polynomial_basis(primbas, nnodes), primbas)
+        new(helfem.polynomial_basis(primbas, nnodes), primbas, nnodes)
     end
 end
 
@@ -95,6 +108,14 @@ Base.length(pb::PolynomialBasis) = helfem.get_nbf(pb.pb)
 function (pb::PolynomialBasis)(xs)
     arma_xs = helfem.ArmaVector(collect(xs))
     return collect(helfem.pb_eval(pb.pb, arma_xs))
+end
+
+function controlpoints(pb::PolynomialBasis)
+    # We only know how to calculate control points for the LIP basis currently
+    pb.primbas == 4 || throw(ArgumentError("Can only calculate control points for LIP basis"))
+    # The LIPBasis uses Gauss-Lobatto nodes, so the following only applies to LIP
+    xs, _ = lobatto(pb.nnodes) # we only need the nodes, can discard the weights
+    return xs
 end
 
 @doc raw"""
@@ -321,6 +342,18 @@ function scale_to_element(b::RadialBasis, k::Integer, xs)
     rmin, rmax = elementrange(b, k)
     r0, rλ = (rmax + rmin) / 2, (rmax - rmin) / 2
     xs .* rλ .+ r0
+end
+
+function controlpoints(b::RadialBasis)
+    # We only know how to calculate control points for the LIP basis currently
+    b.primbas == 4 || throw(ArgumentError("Can only calculate control points for LIP basis"))
+    # The LIPBasis uses Gauss-Lobatto nodes, so the following only applies to LIP
+    xs, _ = lobatto(b.nnodes) # we only need the nodes, can discard the weights
+    rs = Vector{Float64}(undef, (b.nnodes - 1)*b.nelem + 1)
+    for k in 1:b.nelem
+        rs[(b.nnodes-1)*(k-1)+1:(b.nnodes-1)*k+1] .= scale_to_element(b, k, xs)
+    end
+    return rs
 end
 
 end # module
