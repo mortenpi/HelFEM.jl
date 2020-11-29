@@ -40,6 +40,14 @@ using SparseArrays: SparseVector, SparseMatrixCSC
     @test length(b1) == nbf(16, 10)
     @test length(b2) == nbf(6, 170)
 
+    # Introspection for element boundaries
+    @test_throws Exception HelFEM.elementrange(b1, 0)
+    @test_throws Exception HelFEM.elementrange(b1, 11)
+    @test HelFEM.elementrange(b1, 1)[1] == 0.0
+    @test HelFEM.elementrange(b2, 1)[1] == 0.0
+    @test HelFEM.elementrange(b1, 10)[2] == 40.0
+    @test HelFEM.elementrange(b2, 170)[2] == 50.0
+
     let bs = HelFEM.boundaries(b1)
         @test length(bs) == 11
         @test bs[1] == 0.0
@@ -49,6 +57,28 @@ using SparseArrays: SparseVector, SparseMatrixCSC
         @test length(bs) == 171
         @test bs[1] == 0.0
         @test bs[end] == 50.0
+    end
+
+    # Scaling between polynomial coordinates to radial coordinates
+    @test_throws Exception HelFEM.scale_to_element(b1, 0, 0)
+    @test_throws Exception HelFEM.scale_to_element(b1, 11, 0)
+    let rs = HelFEM.scale_to_element(b1, 1, -1)
+        @test isa(rs, Number)
+        @test rs == 0.0
+    end
+    let rs = HelFEM.scale_to_element(b1, 10, 1)
+        @test isa(rs, Number)
+        @test rs == 40.0
+    end
+    let rs = HelFEM.scale_to_element(b1, 1, [-1, 0, 1])
+        @test length(rs) == 3
+        @test rs[1] == 0.0
+    end
+    let rs = HelFEM.scale_to_element(b2, 170, [1, -0.5, 0, 0.5, 1])
+        @test length(rs) == 5
+        @test rs[1] == 50.0
+        @test rs[5] == 50.0
+        @test rs[2]+rs[4] ≈ 2*rs[3]
     end
 
     S1 = HelFEM.overlap(b1)

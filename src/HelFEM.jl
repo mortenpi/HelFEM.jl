@@ -301,4 +301,26 @@ function (b::RadialBasis)(rs)
     return bf
 end
 
+"""
+    elementrange(b::RadialBasis, k::Integer) -> (r_k, r_{k+1})
+
+Returns a tuple with the start and end boundary of the `k`-th element.
+"""
+function elementrange(b::RadialBasis, k::Integer)
+    element_boundaries = boundaries(b)
+    @assert 1 <= k < length(element_boundaries) # TODO: throw proper error
+    element_boundaries[k], element_boundaries[k+1]
+end
+
+"""
+    scale_to_element(b::RadialBasis, k::Integer, xs)
+
+Scales the ``x`` values within the element `k` to the corresponding ``r`` coordinates.
+"""
+function scale_to_element(b::RadialBasis, k::Integer, xs)
+    rmin, rmax = elementrange(b, k)
+    r0, rλ = (rmax + rmin) / 2, (rmax - rmin) / 2
+    xs .* rλ .+ r0
+end
+
 end # module
