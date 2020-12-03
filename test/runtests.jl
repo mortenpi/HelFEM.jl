@@ -118,4 +118,30 @@ using SparseArrays: SparseVector, SparseMatrixCSC
 
     @test HelFEM.add_boundary!(b1, 1.23) === nothing
     @test length(HelFEM.boundaries(b1)) == 12
+
+    @testset "FEMBasis" begin
+        nquad = length(HelFEM.quadraturepoints(b1))
+        grid = HelFEM.boundaries(b1)
+        pb = HelFEM.PolynomialBasis(:lip, b1.nnodes)
+        FB = HelFEM.FEMBasis(pb, grid, nquad=nquad)
+
+        @test HelFEM.boundaries(FB) == grid
+        @test HelFEM.elementrange(FB, 1) == (grid[1], grid[2])
+        @test HelFEM.elementrange(FB, HelFEM.nelements(FB)) == (grid[end-1], grid[end])
+        @test_throws DomainError HelFEM.elementrange(FB, 0)
+        @test_throws DomainError HelFEM.elementrange(FB, -1)
+        @test_throws DomainError HelFEM.elementrange(FB, HelFEM.nelements(FB)+1)
+        @test_throws DomainError HelFEM.elementrange(FB, HelFEM.nelements(FB)+1000)
+
+        @test length(HelFEM.controlpoints(FB)) == (b1.nnodes - 1)*HelFEM.nelements(FB) + 1
+
+        let rs = HelFEM.quadraturepoints(b1)
+            @test FB(rs) ./ rs ≈ HelFEM.basisvalues(b1)
+        end
+        @test HelFEM.radial_integral(FB, r -> 1.0) ≈ HelFEM.overlap(b1)
+        @test HelFEM.radial_integral(FB, r -> 1/r) ≈ HelFEM.radial_integral(b1, -1)
+        @test HelFEM.radial_integral(FB, r -> r, rderivative=true) ≈ HelFEM.radial_integral(b1, 1; rderivative=true)
+        @test HelFEM.radial_integral(FB, r -> r, lderivative=true) ≈ HelFEM.radial_integral(b1, 1; lderivative=true)
+        @test HelFEM.radial_integral(FB, r -> r, lderivative=true, rderivative=true) ≈ HelFEM.radial_integral(b1, 1; lderivative=true, rderivative=true)
+    end
 end
