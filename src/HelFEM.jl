@@ -77,6 +77,13 @@ end
 
 Wrapper type for the `helfem::atomic::polynomial_basis::PolynomialBasis` class, representing
 a set of polynomials ``\{p_i(x)\}`` on a domain ``x \in [-1, 1]``.
+
+# Constructors
+
+    PolynomialBasis(basis::Symbol, nnodes)
+
+Constructs a particular polynomial basis with a specific number of defining nodes.
+`basis` must be one of: `:hermite`, `:legendre` or `:lip`.
 """
 struct PolynomialBasis
     pb :: helfem.PolynomialBasis
@@ -373,6 +380,15 @@ end
 Provides a Julia-based implementation of a finite element basis, but using HelFEM-provided
 primitive polynomials. Unlike [`RadialBasis`](@ref), it does not scale the basis functions
 with ``1/r``, and is therefore valid for any ``x`` interval on ``\\mathbb{R}``.
+
+# Constructors
+
+    FEMBasis(pb::PolynomialBasis, boundaries; [nquad])
+
+Constructs a FEM basis with elements defined by the boundaries specified by `boundaries`
+using the set of polynomials defined by `pb` as the primitive polynomials basis. Optionally,
+`nquad` can be specified to change the number of quadrature points used in the Gauss-Chebyshev
+quadrature when evaluating matrix elements.
 """
 struct FEMBasis
     pb :: PolynomialBasis
