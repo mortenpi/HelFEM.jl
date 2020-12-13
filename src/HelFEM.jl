@@ -548,4 +548,36 @@ function controlpoints(b::FEMBasis)
     return rs
 end
 
+function functionoverlap(b::FEMBasis, f; derivative=false)
+    fi = zeros(Float64, length(b))
+    pb_nbf = length(b.pb)
+    # TODO: support _not_ dropping the edge functions
+    for iel = 1:nelements(b)
+        qmin, qmax = b.boundaries[iel], b.boundaries[iel+1]
+        q0, qλ = (qmax + qmin) / 2, (qmax - qmin) / 2
+        qs = b.qxs .* qλ .+ q0 # scale the quadrature points to q coordinate in element
+        # Evaluate the function at quadrature points in this element
+        fs = f.(qs)
+        # Left and right function values
+        Bi = derivative ? b.pbdf : b.pbf
+        # The integrals get a qλ^(1 - n - m) factor, where n and m are the orders of the
+        # derivatives of the left and right basis functions. The reason is because we scale
+        # the x axis in each element (by qλ), which means the derivative of the basis
+        # function is 1/qλ times the derivative of the primitive polynomial. The additional
+        # 1 comes from the integral itself (dq = qλ * dx).
+        qλfact = qλ^(1 - (derivative ? 1 : 0))
+        # Operator matrix in the element
+        fi_el = sum(b.qws .* fs .* Bi, dims=1) .* qλfact
+        # Assign the calculated basis values to the correct place in the basis matrix
+        bfrange_start = (iel == 1) ? 1 : (pb_nbf - 1) * (iel - 1)
+        bfrange_end = (iel == nelements(b)) ? length(b) : (pb_nbf - 1) * iel
+        ysrange_start = (iel == 1) ? 2 : 1
+        ysrange_end = (iel == nelements(b)) ? (pb_nbf - 1) : pb_nbf
+        # Assign them into the output matrix
+        bfrange, ysrange = bfrange_start:bfrange_end, ysrange_start:ysrange_end
+        fi[bfrange] .+= fi_el[ysrange]
+    end
+    return fi
+end
+
 end # module
