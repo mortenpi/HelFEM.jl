@@ -445,7 +445,7 @@ function Base.length(b::FEMBasis)
     return nbf
 end
 
-boundaries(b::FEMBasis) = b.boundaries
+boundaries(b::FEMBasis) = copy(b.boundaries)
 
 nelements(b::FEMBasis) = length(b.boundaries) - 1
 
