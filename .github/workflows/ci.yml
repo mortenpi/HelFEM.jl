@@ -15,8 +15,7 @@ jobs:
         os:
           - ubuntu-latest
           - macOS-latest
-          # The HelFEM_jll binaries do not work on Windows currently
-          #- windows-latest
+          - windows-latest
         arch:
           - x64
     steps:
