@@ -145,7 +145,6 @@ element basis for radial functions on the domain ``r \in [0, r_{\rm{max}}]``.
 struct RadialBasis
     b :: helfem.RadialBasis
     nnodes :: Int
-    nelem :: Int
     primbas :: Int
     rmax :: Float64
     igrid :: Int
@@ -156,7 +155,7 @@ struct RadialBasis
         nquad = isnothing(nquad) ? 0 : nquad
         new(
             helfem.basis(nnodes, nelem, primbas, rmax, igrid, zexp, nquad),
-            nnodes, nelem, primbas, rmax, igrid, zexp, nquad,
+            nnodes, primbas, rmax, igrid, zexp, nquad,
         )
     end
 
@@ -168,9 +167,19 @@ struct RadialBasis
         rmax = last(grid)
         igrid = 0 # let's declare the igrid == 0 means a custom grid
         zexp = NaN
-        new(b, nnodes, nelem, primbas, rmax, igrid, zexp, nquad)
+        new(b, nnodes, primbas, rmax, igrid, zexp, nquad)
     end
 end
+
+function Base.getproperty(b::RadialBasis, s::Symbol)
+    if s === :nelem
+        helfem.nel(b.b)
+    else
+        getfield(b, s)
+    end
+end
+
+Base.propertynames(::RadialBasis) = (fieldnames(RadialBasis)..., :nelem)
 
 # Special RadialBasis constructor that allows you to construct a new RadialBasis based on an
 # existing one, where you have added (or, also, removed) elements without changing the
