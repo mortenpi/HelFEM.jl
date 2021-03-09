@@ -2,7 +2,8 @@ module HelFEM
 using ReadOnlyArrays
 using CxxWrap: CxxPtr
 
-export PolynomialBasis, RadialBasis
+export PolynomialBasis, RadialBasis, FEMBasis,
+    boundaries, nelements, radial_integral
 
 include("helfem.jl")
 include("polynomialbasis.jl")

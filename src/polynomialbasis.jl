@@ -40,8 +40,19 @@ function Base.show(io::IO, pb::PolynomialBasis)
     write(io, "PolynomialBasis($(primbas_name(pb.primbas)), order=$order) with $(nbf) basis functions")
 end
 
+"""
+    length(pb::PolynomialBasis) -> Integer
+
+Returns the number of basis functions (polynomials) represented by the given polynomial basis.
+"""
 Base.length(pb::PolynomialBasis) = helfem.get_nbf(pb.pb)
 
+
+"""
+    HelFEM.nnodes(pb::PolynomialBasis) -> Integer
+
+Returns the number of control nodes used to define the polynomial basis in the constructor.
+"""
 nnodes(pb::PolynomialBasis) = pb.nnodes
 
 function (pb::PolynomialBasis)(xs)

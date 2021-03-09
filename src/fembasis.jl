@@ -58,6 +58,11 @@ function Base.show(io::IO, b::FEMBasis)
     write(io, "FEMBasis($pbname($pb_nnodes nodes), $nelem elements, on [$x1, $xn]) with $nbf basis function$(nbf>1 ? "s" : "")")
 end
 
+"""
+    length(b::FEMBasis) -> Int
+
+Return the number of basis functions represented by `b`.
+"""
 function Base.length(b::FEMBasis)
     nelem = nelements(b)
     pb_length = length(b.pb)
@@ -69,12 +74,34 @@ function Base.length(b::FEMBasis)
     return nbf
 end
 
+"""
+    boundaries(b::FEMBasis)
+
+Return an array of element boundaries as a sorted read-only array.
+"""
 boundaries(b::FEMBasis) = ReadOnlyArray(b.boundaries)
 
+"""
+    nelements(b::FEMBasis)
+
+Return the number of finite elements defining the basis.
+"""
 nelements(b::FEMBasis) = length(b.boundaries) - 1
 
+"""
+    HelFEM.nquad(b::FEMBasis)
+
+Return the number of quadrature points used when evaluating the matrix elements.
+"""
 nquad(b::FEMBasis) = length(b.qxs)
 
+"""
+    (b::FEMBasis)(qs; derivative=0) -> Matrix
+
+Functor syntax to evaluate the basis functions at specified points. Returns a matrix where
+each column corresponds to a basis function and row corresponds to a point in the input
+vector `qs`.
+"""
 function (b::FEMBasis)(qs; derivative=0)
     @assert derivative in [0, 1]
     @assert first(b.boundaries) <= minimum(qs)
@@ -104,6 +131,20 @@ function (b::FEMBasis)(qs; derivative=0)
     return bf
 end
 
+"""
+    radial_integral(b::FEMBasis, f; lderivative=false, rderivative=false) -> Matrix
+
+Evaluate the matrix elements of the function `f` in the basis
+
+```math
+f_{ij} = \\int_{x_1}^{x_{N+1}} b^*_{i}(x) f(x) b_{j}(x) ~ dx
+```
+
+`f` is expected to be a callable object that takes a single argument.
+
+If the keyword arguments `lderivative` and `rderivative`, the derivative of the corresponding
+basis function is used instead.
+"""
 function radial_integral(b::FEMBasis, f; lderivative=false, rderivative=false)
     Fij = zeros(Float64, (length(b), length(b)))
     pb_nbf = length(b.pb)
@@ -138,7 +179,7 @@ function radial_integral(b::FEMBasis, f; lderivative=false, rderivative=false)
 end
 
 """
-    elementrange(b::RadialBasis, k::Integer) -> (r_k, r_{k+1})
+    elementrange(b::FEMBasis, k::Integer) -> (r_k, r_{k+1})
 
 Returns a tuple with the start and end boundary of the `k`-th element.
 """
