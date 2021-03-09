@@ -1,4 +1,5 @@
 module HelFEM
+using ReadOnlyArrays
 using CxxWrap: CxxPtr
 
 export PolynomialBasis, RadialBasis

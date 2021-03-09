@@ -7,11 +7,13 @@ version = "0.1.0"
 CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
 HelFEM_jll = "584ea77b-75d0-51ad-9ad6-7fb559b95557"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+ReadOnlyArrays = "988b38a3-91fc-5605-94a2-ee2116b3bd83"
 
 [compat]
 CxxWrap = "0.11"
 HelFEM_jll = "0.1"
 julia = "1.5"
+ReadOnlyArrays = "0.1"
 
 [extras]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

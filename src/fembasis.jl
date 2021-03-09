@@ -69,7 +69,7 @@ function Base.length(b::FEMBasis)
     return nbf
 end
 
-boundaries(b::FEMBasis) = copy(b.boundaries)
+boundaries(b::FEMBasis) = ReadOnlyArray(b.boundaries)
 
 nelements(b::FEMBasis) = length(b.boundaries) - 1
 
