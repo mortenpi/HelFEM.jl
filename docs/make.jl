@@ -8,6 +8,8 @@ makedocs(
         "Overview" => "index.md",
         "polynomial.md",
         "radialbasis.md",
+        "FEM basis" => "fembasis.md",
+        "utilities.md",
     ],
 )
 
