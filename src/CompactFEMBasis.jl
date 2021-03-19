@@ -10,7 +10,8 @@ julia> HelFEMBasis()
 """
 module CompactFEMBasis
 using CompactBases: CompactBases, Basis, @materialize, LazyArrays, ContinuumArrays,
-    QuasiAdjoint, QuasiDiagonal, Derivative, BroadcastQuasiArray, QuasiArrays
+    QuasiAdjoint, QuasiDiagonal, Derivative, BroadcastQuasiArray, QuasiArrays,
+    ApplyQuasiArray
 import CompactBases: locs
 using HelFEM: HelFEM
 
