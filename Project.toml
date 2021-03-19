@@ -12,8 +12,8 @@ Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 ReadOnlyArrays = "988b38a3-91fc-5605-94a2-ee2116b3bd83"
 
 [compat]
-CompactBases = "0.1"
-ContinuumArrays = "0.2"
+CompactBases = "0.2"
+ContinuumArrays = "0.6"
 CxxWrap = "0.11"
 HelFEM_jll = "0.1"
 ReadOnlyArrays = "0.1"

@@ -9,9 +9,8 @@ julia> HelFEMBasis()
 ```
 """
 module CompactFEMBasis
-using ContinuumArrays: SimplifyStyle
 using CompactBases: CompactBases, Basis, @materialize, LazyArrays, ContinuumArrays,
-    QuasiAdjoint, QuasiDiagonal, Derivative, BroadcastQuasiArray
+    QuasiAdjoint, QuasiDiagonal, Derivative, BroadcastQuasiArray, QuasiArrays
 import CompactBases: locs
 using HelFEM: HelFEM
 
@@ -41,7 +40,6 @@ Base.getindex(b::HelFEMBasis, r::AbstractVector, i) = b[collect(r), i]
 
 # Overlap matrix
 @materialize function *(Ac::QuasiAdjoint{<:Any,<:HelFEMBasis}, B::HelFEMBasis)
-    SimplifyStyle
     T -> begin
         A = parent(Ac)
         @assert A == B
@@ -55,7 +53,6 @@ end
 
 # Potential
 @materialize function *(Ac::QuasiAdjoint{<:Any,<:HelFEMBasis}, D::QuasiDiagonal, B::HelFEMBasis)
-    SimplifyStyle
     T -> begin
         A = parent(Ac)
         @assert A == B
@@ -69,7 +66,6 @@ end
 
 
 @materialize function *(Ac::QuasiAdjoint{<:Any,<:HelFEMBasis}, D::Derivative, B::HelFEMBasis)
-    SimplifyStyle
     T -> begin
         A = parent(Ac)
         @assert A == B
@@ -82,7 +78,6 @@ end
 end
 
 @materialize function *(Ac::QuasiAdjoint{<:Any,<:HelFEMBasis}, Dc::QuasiAdjoint{<:Any,<:Derivative}, D::Derivative, B::HelFEMBasis)
-    SimplifyStyle
     T -> begin
         A = parent(Ac)
         @assert A == B
