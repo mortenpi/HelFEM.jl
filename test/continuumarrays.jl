@@ -27,7 +27,7 @@ using HelFEM.CompactFEMBasis.ContinuumArrays: Derivative
         @test BDDB isa AbstractMatrix
         @test size(BDDB) == (length(b), length(b))
     end
-    let V = QuasiDiagonal(r -> r^2)
+    let V = QuasiDiagonal((r -> r^2).(r))
         BVB = B'V*B
         @test BVB isa AbstractMatrix
         @test size(BVB) == (length(b), length(b))
