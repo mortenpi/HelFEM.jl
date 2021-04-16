@@ -5,7 +5,7 @@ using CxxWrap: CxxPtr
 export PolynomialBasis, RadialBasis, FEMBasis,
     boundaries, nelements, radial_integral
 
-include("helfem.jl")
+include("helfem_cxxwrap.jl")
 include("polynomialbasis.jl")
 include("radialbasis.jl")
 include("fembasis.jl")
