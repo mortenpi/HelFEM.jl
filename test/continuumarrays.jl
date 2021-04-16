@@ -2,8 +2,8 @@
 using Test
 using HelFEM: PolynomialBasis, FEMBasis
 using HelFEM.CompactFEMBasis: HelFEMBasis
-using HelFEM.CompactFEMBasis.QuasiArrays: Inclusion, domain, QuasiDiagonal
-using HelFEM.CompactFEMBasis.ContinuumArrays: Derivative
+using QuasiArrays: Inclusion, QuasiDiagonal
+using ContinuumArrays: Derivative
 @testset "CompactFEMBasis" begin
     pb = PolynomialBasis(:lip, 5)
     b = FEMBasis(pb, [-1, 1, 2])
@@ -11,8 +11,8 @@ using HelFEM.CompactFEMBasis.ContinuumArrays: Derivative
 
     r = axes(B, 1)
     r isa Inclusion
-    @test minimum(domain(r)) == -1
-    @test maximum(domain(r)) == 2
+    @test minimum(r.domain) == -1
+    @test maximum(r.domain) == 2
     @test length(axes(B, 2)) == length(b)
 
     let S = B'B

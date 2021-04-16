@@ -9,14 +9,13 @@ julia> HelFEMBasis()
 ```
 """
 module CompactFEMBasis
-using CompactBases: CompactBases, Basis, @materialize, LazyArrays, ContinuumArrays,
-    QuasiAdjoint, QuasiDiagonal, Derivative, BroadcastQuasiArray, QuasiArrays,
+using ContinuumArrays: (..), Basis, Derivative
+using QuasiArrays: Inclusion, QuasiAdjoint, QuasiDiagonal, BroadcastQuasiArray,
     ApplyQuasiArray
-import CompactBases: locs
 using HelFEM: HelFEM
 
-# This comes from EllipsisNotation via CompactBases, but can't be imported with using
-const .. = CompactBases.:(..)
+# These imports are necessary for the @materialize macro to work
+using CompactBases: CompactBases, @materialize, QuasiArrays, LazyArrays
 
 struct HelFEMBasis <: Basis{Float64}
     b :: HelFEM.FEMBasis
@@ -24,7 +23,7 @@ end
 
 function Base.axes(b::HelFEMBasis)
     rmin, rmax = first(HelFEM.boundaries(b.b)), last(HelFEM.boundaries(b.b))
-    (CompactBases.Inclusion(rmin..rmax), Base.OneTo(length(b.b)))
+    (Inclusion(rmin..rmax), Base.OneTo(length(b.b)))
 end
 
 function Base.getindex(b::HelFEMBasis, r::Number, i)
@@ -96,7 +95,7 @@ function Sinvh(A::HelFEMBasis)
 end
 
 # Interpolating functions over HelFEMBasis
-locs(B::HelFEMBasis) = HelFEM.controlpoints(B.b)
+CompactBases.locs(B::HelFEMBasis) = HelFEM.controlpoints(B.b)
 
 function Base.:(\ )(B::HelFEMBasis, f::BroadcastQuasiArray)
     @assert B.b.pb.primbas == 4 # only works for LIPs at the moment
