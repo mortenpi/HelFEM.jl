@@ -1,6 +1,12 @@
-using Documenter
+using Documenter, Literate
 using HelFEM
-using Plots
+using DataFrames, DataFramesMeta, Plots, StatsPlots
+
+Literate.markdown(
+    joinpath(@__DIR__, "..", "examples", "particleinabox.jl"),
+    joinpath(@__DIR__, "src", "examples"),
+    documenter = true,
+)
 
 makedocs(
     sitename="HelFEM.jl",
@@ -10,6 +16,9 @@ makedocs(
         "radialbasis.md",
         "FEM basis" => "fembasis.md",
         "utilities.md",
+        "Examples" => [
+            "examples/particleinabox.md",
+        ],
     ],
 )
 
