@@ -28,8 +28,8 @@ using QuasiArrays: domain, AbstractQuasiMatrix
 # ```math
 # \lambda_n = - \left(\frac{\pi n}{b - a}\right)^2,
 # \quad\quad
-# f_n(x) = \sqrt{\frac{2}{b - a}} \rm{sin}\left(
-#   n\pi \frac{x - a}{b - a}
+# f_n(x) = \sqrt{\frac{2}{b - a}} \sin\left(
+#   n \pi \frac{x - a}{b - a}
 # \right)
 # ```
 #
