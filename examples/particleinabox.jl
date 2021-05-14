@@ -11,6 +11,8 @@ using ContinuumArrays
 using HelFEM
 using HelFEM.CompactFEMBasis: HelFEMBasis
 using QuasiArrays: domain, AbstractQuasiMatrix
+## Set the default plot size to more or less fill the page width
+default(size=(800, 400))
 
 # The equation we use for this example is
 #
@@ -165,10 +167,9 @@ vline!(boundaries(R.b), c = :gray, ls=:dash, lw=2, label="FEM boundaries")
 # And we can visualize the error, both on a linear and semi-log scale
 
 plot(
-    @df(Λ, scatter(abs.(:δ))),
+    @df(Λ, scatter(abs.(:δ), ylabel = "Diff. from analytic eigenvalue")),
     @df(Λ, scatter(abs.(:δ), yaxis=:log10)),
-    legend = false, xlabel = "n",
-    size = (900, 400)
+    legend = false, xlabel = "Eigenvalue index n",
 )
 
 # ### Finer basis
@@ -191,10 +192,9 @@ nothing # hide
 #-
 
 plot(
-    @df(Λ, scatter(abs.(:δ))),
+    @df(Λ, scatter(abs.(:δ), ylabel = "Diff. from analytic eigenvalue")),
     @df(Λ, scatter(abs.(:δ), yaxis=:log10)),
-    legend = false, xlabel = "n",
-    size = (900, 400)
+    legend = false, xlabel = "Eigenvalue index n",
 )
 
 # The orbitals match the analytical solutions almost perfectly.
@@ -213,7 +213,7 @@ ps = [
     plot_cmp_ns(s, lastindex(s.λ) - i)
     for i = 0:(3*4) - 1
 ]
-plot(ps..., layout=(4, 3), size = (900, 800))
+plot(ps..., layout=(4, 3), size = (800, 750))
 
 # ## Convergence of eigenvalues
 #
@@ -294,6 +294,6 @@ describe(Λs)
     :N, abs.(:δ), group=:n,
     yaxis=:log10, xaxis=:log10, m=:dot
 )
-xticks!(2 .^ (0:12), string.(2 .^ (0:12)))
+xticks!(2 .^ (2:12), string.(2 .^ (2:12)))
 xlabel!("Number linear splines")
 ylabel!("Error of the n-th eigenvalue")
