@@ -22,4 +22,4 @@ makedocs(
     ],
 )
 
-deploydocs(repo = "github.com/mortenpi/HelFEM.jl")
+deploydocs(repo = "github.com/mortenpi/HelFEM.jl", push_preview=true)
