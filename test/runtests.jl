@@ -144,4 +144,6 @@ using SparseArrays: SparseVector, SparseMatrixCSC
         @test HelFEM.radial_integral(FB, r -> r, lderivative=true) ≈ HelFEM.radial_integral(b1, 1; lderivative=true)
         @test HelFEM.radial_integral(FB, r -> r, lderivative=true, rderivative=true) ≈ HelFEM.radial_integral(b1, 1; lderivative=true, rderivative=true)
     end
+
+    @eval module CompactFEMBasisTests; include("continuumarrays.jl"); end
 end

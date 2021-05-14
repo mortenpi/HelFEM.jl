@@ -4,3 +4,4 @@
 # Documentation-related ignores
 /docs/Manifest.toml
 /docs/build/
+/docs/src/examples/particleinabox.md

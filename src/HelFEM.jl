@@ -38,4 +38,6 @@ function lobatto(nquad)
     (xs = collect(xs), ws = collect(ws))
 end
 
+include("CompactFEMBasis.jl")
+
 end # module
