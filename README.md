@@ -12,6 +12,12 @@ The package is not yet registered, but can be installed in the Julia Pkg REPL-mo
 pkg> add https://github.com/mortenpi/HelFEM.jl.git
 ```
 
+## References
+
+The package relies on code and methods described in the following paper:
+
+* S. Lehtola, [Fully numerical Hartree‐Fock and density functional calculations. I. Atoms](http://doi.org/10.1002/qua.25945). Int. J. Quantum Chem. 2019, e25945. DOI: 10.1002/qua.25945. arXiv:1810.11651
+
 [docs-dev-img]: https://img.shields.io/badge/docs-development-blue.svg
 [docs-dev-url]: http://mortenpi.eu/HelFEM.jl/dev/
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
