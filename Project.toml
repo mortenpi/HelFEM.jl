@@ -14,10 +14,10 @@ ReadOnlyArrays = "988b38a3-91fc-5605-94a2-ee2116b3bd83"
 
 [compat]
 CompactBases = "0.3"
-ContinuumArrays = "0.7"
+ContinuumArrays = "0.10"
 CxxWrap = "0.11"
 HelFEM_jll = "0.1"
-QuasiArrays = "0.5"
+QuasiArrays = "0.9"
 ReadOnlyArrays = "0.1"
 julia = "1.5"
 
