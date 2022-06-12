@@ -24,7 +24,6 @@ struct RadialBasis
     function RadialBasis(pb::PolynomialBasis, grid::AbstractVector, nquad::Integer)
         b = helfem.RadialBasis(CxxPtr(pb.pb), nquad, helfem.ArmaVector(grid))
         nnodes = helfem.pb_order(pb.pb)
-        nelem = length(grid) - 1
         primbas = pb.primbas
         rmax = last(grid)
         igrid = 0 # let's declare the igrid == 0 means a custom grid

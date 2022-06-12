@@ -9,6 +9,7 @@ julia> HelFEMBasis()
 ```
 """
 module CompactFEMBasis
+__precompile__(false)
 using ContinuumArrays: (..), Basis, Derivative
 using QuasiArrays: Inclusion, QuasiAdjoint, QuasiDiagonal, BroadcastQuasiArray,
     ApplyQuasiArray
